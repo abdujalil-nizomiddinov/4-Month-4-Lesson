@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quantum Matrix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="Icon.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@400;700&display=swap");
+
+      :root {
+        --neon-green: #00ff00;
+        --neon-glow: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00;
+        --dark-matrix: #0a0a0a;
+      }
+
+      body {
+        background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+        overflow: hidden;
+        font-family: "Orbitron", "JetBrains Mono", monospace;
+        color: var(--neon-green);
+      }
+
+      .matrix-rain {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        opacity: 0.15;
+      }
+
+      .time-display {
+        text-shadow: var(--neon-glow);
+        transition: all 0.3s ease;
+      }
+
+      .control-btn {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        color: var(--neon-green);
+      }
+
+      .control-btn::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          to bottom right,
+          transparent 45%,
+          rgba(0, 255, 0, 0.3) 50%,
+          transparent 55%
+        );
+        transform: rotate(45deg);
+        transition: all 0.6s ease;
+        opacity: 0;
+      }
+
+      .control-btn:hover::before {
+        animation: shine 1.5s infinite;
+        opacity: 1;
+      }
+
+      .control-btn:active {
+        transform: scale(0.95) translateY(2px);
+      }
+
+      .pulse-animation {
+        animation: pulse 2s infinite alternate;
+      }
+
+      .floating-animation {
+        animation: floating 6s ease-in-out infinite;
+      }
+
+      .border-glow {
+        box-shadow: 0 0 10px #00ff00, inset 0 0 10px #00ff00;
+      }
+
+      @keyframes shine {
+        0% {
+          left: -100%;
+          top: -100%;
+        }
+        100% {
+          left: 100%;
+          top: 100%;
+        }
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 0.8;
+          transform: scale(1);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1.02);
+        }
+      }
+
+      @keyframes floating {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-15px);
+        }
+      }
+
+      @keyframes border-pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 5px #00ff00;
+        }
+        50% {
+          box-shadow: 0 0 20px #00ff00;
+        }
+      }
+
+      .digit-enter {
+        animation: digitPop 0.3s ease-out;
+      }
+
+      @keyframes digitPop {
+        0% {
+          transform: scale(0.8);
+          opacity: 0;
+        }
+        70% {
+          transform: scale(1.1);
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+  <body class="w-full h-screen flex items-center justify-center">
+    <!-- Matrix rain background -->
+    <canvas id="matrixRain" class="matrix-rain"></canvas>
+
+    <!-- Main container with floating animation -->
+    <div class="flex flex-col gap-12 items-center floating-animation relative">
+      <!-- Time display with advanced glow and animations -->
+      <div
+        class="flex gap-8 bg-black/90 px-24 py-8 rounded-2xl border-2 border-green-500/50 backdrop-blur-sm pulse-animation max-md:px-12 max-md:py-6 max-sm:flex-col max-sm:items-center max-sm:gap-4 max-sm:px-8"
+      >
+        <p
+          class="Day time-display text-4xl max-md:text-2xl max-sm:text-xl digit-enter"
+        >
+          Day: <span class="count">0</span>
+        </p>
+        <p
+          class="Hours time-display text-4xl max-md:text-2xl max-sm:text-xl digit-enter"
+        >
+          Hours: <span class="count">0</span>
+        </p>
+        <p
+          class="Minute time-display text-4xl max-md:text-2xl max-sm:text-xl digit-enter"
+        >
+          Minute: <span class="count">0</span>
+        </p>
+        <p
+          class="Second time-display text-4xl max-md:text-2xl max-sm:text-xl digit-enter"
+        >
+          Second: <span class="count">0</span>
+        </p>
+        <p
+          class="ms time-display text-4xl max-md:text-2xl max-sm:text-xl digit-enter"
+        >
+          ms: <span class="count">0</span>
+        </p>
+      </div>
+
+      <!-- Control buttons with premium effects -->
+      <div
+        class="flex gap-6 max-sm:gap-3 max-sm:flex-wrap max-sm:justify-center"
+      >
+        <button
+          class="Start control-btn border-2 border-green-500 rounded-xl px-10 py-3 text-xl font-bold bg-black/70 hover:bg-black/90 hover:shadow-[0_0_25px_5px_rgba(0,255,0,0.4)] active:shadow-[0_0_35px_10px_rgba(0,255,0,0.6)] max-md:px-8 max-md:py-2 max-md:text-lg max-sm:px-6 max-sm:text-base"
+        >
+          <i class="fas fa-play mr-2"></i> Start
+        </button>
+        <button
+          class="Stop control-btn border-2 border-green-500 rounded-xl px-10 py-3 text-xl font-bold bg-black/70 hover:bg-black/90 hover:shadow-[0_0_25px_5px_rgba(0,255,0,0.4)] active:shadow-[0_0_35px_10px_rgba(0,255,0,0.6)] max-md:px-8 max-md:py-2 max-md:text-lg max-sm:px-6 max-sm:text-base"
+        >
+          <i class="fas fa-pause mr-2"></i> Stop
+        </button>
+        <button
+          class="Restart control-btn border-2 border-green-500 rounded-xl px-10 py-3 text-xl font-bold bg-black/70 hover:bg-black/90 hover:shadow-[0_0_25px_5px_rgba(0,255,0,0.4)] active:shadow-[0_0_35px_10px_rgba(0,255,0,0.6)] max-md:px-8 max-md:py-2 max-md:text-lg max-sm:px-6 max-sm:text-base"
+        >
+          <i class="fas fa-redo mr-2"></i> Restart
+        </button>
+        <button
+          class="Clear control-btn border-2 border-green-500 rounded-xl px-10 py-3 text-xl font-bold bg-black/70 hover:bg-black/90 hover:shadow-[0_0_25px_5px_rgba(0,255,0,0.4)] active:shadow-[0_0_35px_10px_rgba(0,255,0,0.6)] max-md:px-8 max-md:py-2 max-md:text-lg max-sm:px-6 max-sm:text-base"
+        >
+          <i class="fas fa-trash-alt mr-2"></i> Clear
+        </button>
+      </div>
+
+      <!-- Status text moved below buttons -->
+      <div
+        class="absolute -bottom-20 text-green-500/50 text-sm animate-pulse w-full text-center"
+      >
+        QUANTUM CHRONO v2.0 | SYSTEM ACTIVE.....
+      </div>
+    </div>
+
+    <script>
+      // Matrix rain effect
+      const canvas = document.getElementById("matrixRain");
+      const ctx = canvas.getContext("2d");
+
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const katakana =
+        "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッン";
+      const latin = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      const nums = "0123456789";
+
+      const alphabet = katakana + latin + nums;
+
+      const fontSize = 16;
+      const columns = canvas.width / fontSize;
+
+      const rainDrops = [];
+
+      for (let x = 0; x < columns; x++) {
+        rainDrops[x] = 1;
+      }
+
+      const draw = () => {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#00ff00";
+        ctx.font = fontSize + "px monospace";
+
+        for (let i = 0; i < rainDrops.length; i++) {
+          const text = alphabet.charAt(
+            Math.floor(Math.random() * alphabet.length)
+          );
+          ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+
+          if (
+            rainDrops[i] * fontSize > canvas.height &&
+            Math.random() > 0.975
+          ) {
+            rainDrops[i] = 0;
+          }
+          rainDrops[i]++;
+        }
+      };
+
+      setInterval(draw, 30);
+
+      // Stopwatch functionality
+      let startTime;
+      let elapsedTime = 0;
+      let timerInterval;
+      let isRunning = false;
+
+      function timeToString(time) {
+        let diffInHrs = time / 3600000;
+        let hh = Math.floor(diffInHrs);
+
+        let diffInMin = (diffInHrs - hh) * 60;
+        let mm = Math.floor(diffInMin);
+
+        let diffInSec = (diffInMin - mm) * 60;
+        let ss = Math.floor(diffInSec);
+
+        let diffInMs = (diffInSec - ss) * 100;
+        let ms = Math.floor(diffInMs);
+
+        let diffInDay = hh / 24;
+        let dd = Math.floor(diffInDay);
+        hh = hh % 24;
+
+        const formattedDD = dd.toString().padStart(2, "0");
+        const formattedHH = hh.toString().padStart(2, "0");
+        const formattedMM = mm.toString().padStart(2, "0");
+        const formattedSS = ss.toString().padStart(2, "0");
+        const formattedMS = ms.toString().padStart(2, "0");
+
+        return {
+          days: formattedDD,
+          hours: formattedHH,
+          minutes: formattedMM,
+          seconds: formattedSS,
+          milliseconds: formattedMS,
+        };
+      }
+
+      function start() {
+        if (!isRunning) {
+          startTime = Date.now() - elapsedTime;
+          timerInterval = setInterval(function printTime() {
+            elapsedTime = Date.now() - startTime;
+            const time = timeToString(elapsedTime);
+
+            document.querySelector(".Day .count").textContent = time.days;
+            document.querySelector(".Hours .count").textContent = time.hours;
+            document.querySelector(".Minute .count").textContent = time.minutes;
+            document.querySelector(".Second .count").textContent = time.seconds;
+            document.querySelector(".ms .count").textContent =
+              time.milliseconds;
+          }, 10);
+          isRunning = true;
+        }
+      }
+
+      function stop() {
+        if (isRunning) {
+          clearInterval(timerInterval);
+          isRunning = false;
+        }
+      }
+
+      function restart() {
+        stop();
+        elapsedTime = 0;
+        document.querySelectorAll(".count").forEach((el) => {
+          el.textContent = "0";
+        });
+        start(); // Automatically start counting again
+      }
+
+      function clear() {
+        stop();
+        elapsedTime = 0;
+        document.querySelectorAll(".count").forEach((el) => {
+          el.textContent = "0";
+        });
+      }
+
+      // Event listeners
+      document.querySelector(".Start").addEventListener("click", start);
+      document.querySelector(".Stop").addEventListener("click", stop);
+      document.querySelector(".Restart").addEventListener("click", restart);
+      document.querySelector(".Clear").addEventListener("click", clear);
+
+      // Time update animation
+      document.querySelectorAll(".count").forEach((el) => {
+        el.addEventListener("DOMSubtreeModified", () => {
+          el.classList.add("digit-enter");
+          setTimeout(() => el.classList.remove("digit-enter"), 300);
+        });
+      });
+
+      // Button hover effects
+      document.querySelectorAll(".control-btn").forEach((btn) => {
+        btn.addEventListener("mouseenter", () => {
+          btn.classList.add("border-glow");
+        });
+
+        btn.addEventListener("mouseleave", () => {
+          btn.classList.remove("border-glow");
+        });
+      });
+    </script>
+  </body>
+</html>
